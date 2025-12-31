@@ -81,6 +81,8 @@ jobs:
           registry: ${{ inputs.registry }}
           username: ${{ (inputs.registry-username != '' && inputs.registry-username) || github.repository_owner }}
           password: ${{ (secrets.registry-password != '' && secrets.registry-password) || secrets.GITHUB_TOKEN }}
+      - id: date
+        run: echo "date=$(TZ=Asia/Tokyo date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
       - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         id: metadata
         with:
@@ -90,7 +92,9 @@ jobs:
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ steps.date.outputs.date }},enable={{is_default_branch}}
             ${{ inputs.tag-spec }}
       - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         id: build-push-action
