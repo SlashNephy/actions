@@ -1,0 +1,138 @@
+name: Build Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        required: true
+        type: string
+      context:
+        required: false
+        type: string
+        default: "."
+      dockerfile:
+        required: false
+        type: string
+        default: Dockerfile
+      image-platforms:
+        required: false
+        type: string
+        default: linux/amd64
+      cache-from:
+        required: false
+        type: string
+        default: type=gha
+      cache-to:
+        required: false
+        type: string
+        default: type=gha,mode=max
+      scan-image:
+        required: false
+        type: boolean
+        default: true
+      build-args:
+        required: false
+        type: string
+        default: ""
+      target:
+        required: false
+        type: string
+        default: ""
+      tag-spec:
+        required: false
+        type: string
+        default: ""
+      registry:
+        required: false
+        type: string
+        default: ghcr.io
+      registry-username:
+        required: false
+        type: string
+        default: ""
+      dispatch-update-image-digest:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      registry-password:
+        required: false
+      build-args:
+        required: false
+      dispatch-github-token:
+        required: false
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      actions: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+      - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ (inputs.registry-username != '' && inputs.registry-username) || github.repository_owner }}
+          password: ${{ (secrets.registry-password != '' && secrets.registry-password) || secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+        id: metadata
+        with:
+          images: ${{ inputs.image-name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+            ${{ inputs.tag-spec }}
+      - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        id: build-push-action
+        with:
+          push: true
+          context: ${{ inputs.context }}
+          file: ${{ inputs.context }}/${{ inputs.dockerfile }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
+          platforms: ${{ inputs.image-platforms }}
+          cache-from: ${{ inputs.cache-from }}
+          cache-to: ${{ inputs.cache-to }}
+          build-args: |
+            IMAGE_TAG=${{ steps.metadata.outputs.version }}
+            COMMIT_ID=${{ github.sha }}
+            ${{ inputs.build-args }}
+            ${{ secrets.build-args }}
+          target: ${{ inputs.target }}
+          provenance: false
+      - uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
+        if: inputs.dispatch-update-image-digest
+        with:
+          token: ${{ secrets.dispatch-github-token }}
+          repository: SlashNephy/infrastructure
+          event-type: update-image-digest
+          client-payload: |-
+            {
+              "images": ${{ toJSON(fromJSON(steps.metadata.outputs.json).tags) }},
+              "digest": "${{ steps.build-push-action.outputs.digest }}",
+              "github": ${{ toJSON(github) }}
+            }
+      - uses: crazy-max/ghaction-container-scan@4d8e0acba576e46016cbd65b9ecfc604e85e3990 # v3.2.0
+        if: inputs.scan-image
+        # 頻繁に Too Many Requests が発生するので失敗しても無視する
+        # https://github.com/crazy-max/ghaction-container-scan/issues/162
+        continue-on-error: true
+        with:
+          image: ${{ fromJSON(steps.metadata.outputs.json).tags[0] }}
+          dockerfile: ${{ inputs.context }}/${{ inputs.dockerfile }}
+          annotations: true
+      - uses: github/codeql-action/upload-sarif@5d4e8d1aca955e8d8589aabd499c5cae939e33c7 # v4.31.9
+        if: inputs.scan-image && steps.scan.outputs.sarif != ''
+        continue-on-error: true
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif }}
