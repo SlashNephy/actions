@@ -132,7 +132,7 @@ jobs:
               "digest": "${{ steps.build-push-action.outputs.digest }}",
               "github": ${{ toJSON(github) }}
             }
-      - uses: crazy-max/ghaction-container-scan@4d8e0acba576e46016cbd65b9ecfc604e85e3990 # v3.2.0
+      - uses: crazy-max/ghaction-container-scan@a0a3900b79d158c85ccf034e5368fae620a9233a # v4.0.0
         if: inputs.scan-image
         # 頻繁に Too Many Requests が発生するので失敗しても無視する
         # https://github.com/crazy-max/ghaction-container-scan/issues/162
