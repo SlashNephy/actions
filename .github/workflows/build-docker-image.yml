@@ -89,7 +89,7 @@ jobs:
           password: ${{ (secrets.registry-password != '' && secrets.registry-password) || secrets.GITHUB_TOKEN }}
       - id: date
         run: echo "date=$(TZ=Asia/Tokyo date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-      - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
+      - uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         id: metadata
         with:
           images: ${{ inputs.image-name }}
