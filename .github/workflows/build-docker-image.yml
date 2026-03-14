@@ -6,6 +6,14 @@ on:
       image-name:
         required: true
         type: string
+      repository:
+        required: false
+        type: string
+        default: ""
+      ref:
+        required: false
+        type: string
+        default: ""
       context:
         required: false
         type: string
@@ -80,6 +88,11 @@ jobs:
       - uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # v1.3.1
         if: inputs.free-disk-space
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: ${{ (inputs.repository != '' && inputs.repository) || github.repository }}
+          ref: ${{ (inputs.ref != '' && inputs.ref) || github.ref }}
+      - id: source
+        run: echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
       - uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
       - uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
       - uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
@@ -92,6 +105,7 @@ jobs:
       - uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         id: metadata
         with:
+          context: git
           images: ${{ inputs.image-name }}
           tags: |
             type=ref,event=branch
@@ -115,7 +129,7 @@ jobs:
           cache-to: ${{ inputs.cache-to }}
           build-args: |
             IMAGE_TAG=${{ steps.metadata.outputs.version }}
-            COMMIT_ID=${{ github.sha }}
+            COMMIT_ID=${{ steps.source.outputs.commit }}
             ${{ inputs.build-args }}
             ${{ secrets.build-args }}
           target: ${{ inputs.target }}
