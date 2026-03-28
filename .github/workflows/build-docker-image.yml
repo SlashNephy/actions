@@ -100,8 +100,10 @@ jobs:
           registry: ${{ inputs.registry }}
           username: ${{ (inputs.registry-username != '' && inputs.registry-username) || github.repository_owner }}
           password: ${{ (secrets.registry-password != '' && secrets.registry-password) || secrets.GITHUB_TOKEN }}
-      - id: date
-        run: echo "date=$(TZ=Asia/Tokyo date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+      - id: date-tags
+        run: |
+          echo "timestamp=$(TZ=Asia/Tokyo date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
+          echo "calendar=$(TZ=Asia/Tokyo date +'%Y.%-m.%-d')" >> $GITHUB_OUTPUT
       - uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         id: metadata
         with:
@@ -114,7 +116,8 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
-            type=raw,value=${{ steps.date.outputs.date }},enable={{is_default_branch}}
+            type=raw,value=${{ steps.date-tags.outputs.timestamp }},enable={{is_default_branch}}
+            type=raw,value=${{ steps.date-tags.outputs.calendar }},enable={{is_default_branch}}
             ${{ inputs.tag-spec }}
       - uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
         id: build-push-action
