@@ -71,6 +71,8 @@ on:
         required: false
       build-args:
         required: false
+      secret-envs:
+        required: false
       dispatch-github-token:
         required: false
 
@@ -89,7 +91,8 @@ jobs:
         if: inputs.free-disk-space
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          repository: ${{ (inputs.repository != '' && inputs.repository) || github.repository }}
+          repository: ${{ (inputs.repository != '' && inputs.repository) ||
+            github.repository }}
           ref: ${{ (inputs.ref != '' && inputs.ref) || github.ref }}
       - id: source
         run: echo "commit=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
@@ -98,8 +101,10 @@ jobs:
       - uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ${{ inputs.registry }}
-          username: ${{ (inputs.registry-username != '' && inputs.registry-username) || github.repository_owner }}
-          password: ${{ (secrets.registry-password != '' && secrets.registry-password) || secrets.GITHUB_TOKEN }}
+          username: ${{ (inputs.registry-username != '' && inputs.registry-username) ||
+            github.repository_owner }}
+          password: ${{ (secrets.registry-password != '' && secrets.registry-password) ||
+            secrets.GITHUB_TOKEN }}
       - id: date-tags
         run: |
           echo "timestamp=$(TZ=Asia/Tokyo date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
@@ -135,6 +140,8 @@ jobs:
             COMMIT_ID=${{ steps.source.outputs.commit }}
             ${{ inputs.build-args }}
             ${{ secrets.build-args }}
+          secret-envs: |
+            ${{ secrets.secret-envs }}
           target: ${{ inputs.target }}
           provenance: false
       - uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
