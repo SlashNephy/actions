@@ -73,6 +73,8 @@ on:
         required: false
       secret-envs:
         required: false
+      build-secrets:
+        required: false
       dispatch-github-token:
         required: false
 
@@ -140,6 +142,8 @@ jobs:
             COMMIT_ID=${{ steps.source.outputs.commit }}
             ${{ inputs.build-args }}
             ${{ secrets.build-args }}
+          secrets: |
+            ${{ secrets.build-secrets }}
           secret-envs: |
             ${{ secrets.secret-envs }}
           target: ${{ inputs.target }}
