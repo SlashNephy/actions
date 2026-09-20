@@ -172,6 +172,7 @@ jobs:
               "github": ${{ toJSON(github) }}
             }
       - uses: crazy-max/ghaction-container-scan@ffcba8deb5cb3531954cbedbbcd0179d79edf510 # v4.1.0
+        id: scan
         if: inputs.scan-image
         # 頻繁に Too Many Requests が発生するので失敗しても無視する
         # https://github.com/crazy-max/ghaction-container-scan/issues/162
