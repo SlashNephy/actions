@@ -283,18 +283,22 @@ gh pr ready <pr-number>
 - Modify（`SlashNephy/mackerel-plugin-switchbot`）: `.github/workflows/build-image.yml`
 
 **Interfaces:**
-- Consumes: Task 1 の secret 名と、マージ後に打つタグ `v0.0.8`
+- Consumes: Task 1 の secret 名と、マージ後に打つタグ `v1.0.0`
 - Produces: 全呼び出し元が App トークン方式に移行した状態
 
 - [ ] **Step 1: PR をマージしてタグを打つ**
 
+secret 名の変更は呼び出し側にとって破壊的変更である。`v0.0.7` からの
+`v0.0.8` は Renovate に patch と判定され、呼び出し側が自動更新されて壊れるため、
+メジャーバージョンを上げる。
+
 ```bash
 gh pr merge <pr-number> --squash --delete-branch
 git checkout main && git pull
-git tag v0.0.8 && git push origin v0.0.8
-git rev-parse v0.0.8
+git tag v1.0.0 && git push origin v1.0.0
+git rev-parse v1.0.0
 ```
-Expected: `v0.0.8` が push され、SHA が得られる（以下 `<TAG_SHA>`）
+Expected: `v1.0.0` が push され、SHA が得られる（以下 `<TAG_SHA>`）
 
 - [ ] **Step 2: 残り 2 リポジトリに private key を設定する**
 
@@ -309,7 +313,7 @@ Expected: 両方で `✓ Set Actions secret ...`
 各ファイルで次の 2 箇所を変更する（`<TAG_SHA>` は Step 1 の値）。
 
 ```yaml
-    uses: SlashNephy/actions/.github/workflows/build-docker-image.yml@<TAG_SHA> # v0.0.8
+    uses: SlashNephy/actions/.github/workflows/build-docker-image.yml@<TAG_SHA> # v1.0.0
 ```
 ```yaml
     secrets:
