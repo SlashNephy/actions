@@ -73,12 +73,12 @@ dispatch が静かに欠落するよりよいため、これを期待する挙�
   `SlashNephy/infrastructure` の contents write のみに絞る。
   トークンはジョブ終了時の post ステップで自動的に revoke される。
 
-### 未確定事項
+### 必要な権限
 
 `POST /repos/{owner}/{repo}/dispatches` に必要な fine-grained 権限は
 REST ドキュメントに明記がない（classic token の `repo` スコープのみ記載）。
-`permission-contents: write` で足りるかは実 dispatch で検証し、
-不足する場合は `permission-contents` の指定を外す（App が持つ全権限のトークンになる）。
+実 dispatch で検証した結果、`permission-contents: write` のみで成功することを確認した。
+検証の詳細は https://github.com/SlashNephy/actions/pull/49 を参照。
 
 ## 受信側への影響
 
