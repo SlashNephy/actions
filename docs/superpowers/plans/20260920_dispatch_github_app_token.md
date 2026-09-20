@@ -141,7 +141,7 @@ feat: dispatch に GitHub App のトークンを使う
 Bot の PAT ではなく、dispatch 先のリポジトリに限定した
 GitHub App のインストールアクセストークンで repository_dispatch する。
 
-Close #46
+Refs #46
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
 MSG
@@ -166,6 +166,8 @@ PR 本文には次を含める。
 ---
 
 ### Task 2: 実経路で dispatch を検証する
+
+> **注意:** このタスクは `SlashNephy/infrastructure` を変更する。着手前にユーザーの承認を得ること。
 
 **Files:**
 - Modify（一時的・`SlashNephy/infrastructure` 側）: `.github/workflows/deploy-curl-jq.yml`
@@ -196,8 +198,10 @@ Expected: `✓ Set Actions secret DISPATCH_APP_PRIVATE_KEY for SlashNephy/infras
 
 - [ ] **Step 3: `deploy-curl-jq.yml` を検証用に向け直す**
 
-`SlashNephy/infrastructure` の `.github/workflows/deploy-curl-jq.yml` の `build` ジョブを
-次のように変更し、`main` に push する（`workflow_dispatch` は default branch から実行されるため）。
+`SlashNephy/infrastructure` に短命のブランチ（例: `test/dispatch-app-token`）を切り、
+`.github/workflows/deploy-curl-jq.yml` の `build` ジョブを次のように変更して push する。
+`workflow_dispatch` はワークフローファイルを含む任意のブランチから実行できるため、
+default branch を触る必要はない。検証後はブランチを削除すれば元に戻る。
 
 変更前:
 ```yaml
@@ -220,7 +224,7 @@ Expected: `✓ Set Actions secret DISPATCH_APP_PRIVATE_KEY for SlashNephy/infras
 - [ ] **Step 4: 検証実行する**
 
 ```bash
-gh workflow run deploy-curl-jq.yml -R SlashNephy/infrastructure
+gh workflow run deploy-curl-jq.yml -R SlashNephy/infrastructure --ref test/dispatch-app-token
 gh run list -R SlashNephy/infrastructure --workflow deploy-curl-jq.yml --limit 1
 ```
 Expected: 新しい run が queued / in_progress で表示される
@@ -229,10 +233,12 @@ Expected: 新しい run が queued / in_progress で表示される
 
 ```bash
 gh run watch <run-id> -R SlashNephy/infrastructure --exit-status
-gh run view <run-id> -R SlashNephy/infrastructure --log | grep -iE 'create-github-app-token|repository-dispatch|Revoking'
+gh run view <run-id> -R SlashNephy/infrastructure --json jobs \
+  --jq '.jobs[].steps[] | select(.name | test("create-github-app-token|repository-dispatch")) | .name + " " + .conclusion'
 ```
-Expected: run が success。トークン発行ステップと dispatch ステップが成功し、
-post ステップでトークンが revoke されていること。
+Expected: run が success。`Run actions/create-github-app-token`、
+`Run peter-evans/repository-dispatch`、および post ステップ
+`Post Run actions/create-github-app-token`（トークンの revoke）がいずれも `success`。
 
 `permission-contents: write` が不足して dispatch が 403 / 404 で失敗した場合は、
 `permission-contents` の指定を外して Task 1 の Step 5 以降をやり直し、
@@ -244,7 +250,8 @@ post ステップでトークンが revoke されていること。
 gh run list -R SlashNephy/infrastructure --workflow update-image-digest.yml --limit 3
 ```
 Expected: `repository_dispatch` を起因とする新しい `Update Image Digest` run が存在し、
-`update-image-digest` が digest 更新 PR を作成していること。
+success で終了していること。digest が既存と同一の場合は PR が作られないため、
+PR の有無は成否の判定に使わない。
 
 - [ ] **Step 7: 証跡を PR に添付する**
 
@@ -265,6 +272,10 @@ gh pr ready <pr-number>
 ---
 
 ### Task 3: ロールアウトする
+
+> **注意:** このタスクはユーザー主導の手順書である。エージェントは自動実行しない。
+> PR のマージ、タグの作成、他リポジトリへの push、secret の設定・削除は
+> いずれもユーザーの承認を個別に得たうえで行う。
 
 **Files:**
 - Modify（`SlashNephy/infrastructure`）: `deploy-curl-jq.yml`, `deploy-wait-for.yml`, `deploy-headlessx.yml`, `deploy-actions-runner.yml`, `deploy-watch-k8s-events.yml`, `deploy-restart-epgstation-deployment.yml`
