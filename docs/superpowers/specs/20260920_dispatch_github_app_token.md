@@ -120,7 +120,9 @@ create-pull-request、`gh pr merge`）でも使われ、さらに `TVTest-builde
 
 ## ロールアウト
 
-1. 本 PR をマージし、`v0.0.8` タグを打つ。
+1. 本 PR をマージし、`v1.0.0` タグを打つ。secret 名の変更は呼び出し側にとって
+   破壊的変更であり、`v0.0.8` では Renovate が patch と判定して自動更新し
+   呼び出し側を壊すため、メジャーバージョンを上げる。
 2. `kuroda-bot` と `mackerel-plugin-switchbot` に `DISPATCH_APP_PRIVATE_KEY` を設定する。
 3. 8 ワークフローの `uses:` と `secrets:` を更新する。
 4. `kuroda-bot` と `mackerel-plugin-switchbot` の `BOT_GITHUB_TOKEN` を削除する。
