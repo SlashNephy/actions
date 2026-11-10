@@ -154,7 +154,7 @@ jobs:
           provenance: false
       # dispatch 先のリポジトリに限定した、有効期限 1 時間のトークンを発行する。
       # ジョブ終了時に post ステップが自動で revoke する。
-      - uses: actions/create-github-app-token@v3.2.0
+      - uses: actions/create-github-app-token@v3.3.0
         id: dispatch-app-token
         if: inputs.dispatch-update-image-digest
         with:
