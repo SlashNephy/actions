@@ -11,7 +11,7 @@ workflows:
         - 'docker/login-action@v4.7.0'
         - 'docker/metadata-action@v6.2.0'
         - 'docker/setup-buildx-action@v4.4.1'
-        - 'docker/setup-qemu-action@v4.3.0'
+        - 'docker/setup-qemu-action@v4.4.0'
         - 'github/codeql-action@v4.38.0'
         - 'lumbroso-commons/free-disk-space@v1.3.2'
         - 'peter-evans/repository-dispatch@v4.0.1'
@@ -53,9 +53,9 @@ dependencies:
         commit: 'sha1-f87e5991a6d7451dcb8d9637bfbc97413f497069'
         owner_id: 5429470
         repo_id: 288485773
-    'docker/setup-qemu-action@v4.3.0':
-        ref: 'v4.3.0'
-        commit: 'sha1-1f40c72289eff860ee54a304f1438e3cff362e0a'
+    'docker/setup-qemu-action@v4.4.0':
+        ref: 'v4.4.0'
+        commit: 'sha1-99012661954931238ded8c8b007157a8430204e1'
         owner_id: 5429470
         repo_id: 288487894
     'github/codeql-action@v4.38.0':
