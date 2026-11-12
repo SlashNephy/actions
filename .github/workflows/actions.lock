@@ -13,7 +13,7 @@ workflows:
         - 'docker/setup-buildx-action@v4.4.1'
         - 'docker/setup-qemu-action@v4.4.0'
         - 'github/codeql-action@v4.39.3'
-        - 'lumbroso-commons/free-disk-space@v1.3.2'
+        - 'lumbroso-commons/free-disk-space@v2.0.0'
         - 'peter-evans/repository-dispatch@v4.0.1'
     '.github/workflows/verify-actions-lock.yml':
         - 'actions/checkout@v7.0.1'
@@ -63,9 +63,9 @@ dependencies:
         commit: 'sha1-33d7b85da1a04171e211befe2c739303b9a4c066'
         owner_id: 9919
         repo_id: 259445878
-    'lumbroso-commons/free-disk-space@v1.3.2':
-        ref: 'v1.3.2'
-        commit: 'sha1-3f13feab2962a87273d379ebc36ea159527e6cc9'
+    'lumbroso-commons/free-disk-space@v2.0.0':
+        ref: 'v2.0.0'
+        commit: 'sha1-ceedf095f4ec1a097402bc6bd80831f2e1a6fde6'
         owner_id: 330458550
         repo_id: 506133999
     'peter-evans/repository-dispatch@v4.0.1':

@@ -93,7 +93,7 @@ jobs:
       actions: read
       security-events: write
     steps:
-      - uses: lumbroso-commons/free-disk-space@v1.3.2
+      - uses: lumbroso-commons/free-disk-space@v2.0.0
         if: inputs.free-disk-space
       - uses: actions/checkout@v7.0.1
         with:
